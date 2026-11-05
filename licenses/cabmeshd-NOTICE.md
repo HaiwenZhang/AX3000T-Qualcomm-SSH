@@ -1,0 +1,78 @@
+NOTICE
+======
+
+This repository contains working, weaponised exploit code for a real,
+unpatched vulnerability in shipping consumer routers. It is published for
+defensive and owner-liberation purposes. Read this file before using any of
+it.
+
+1. Authorised use only
+----------------------
+Use this code only against devices you own or are explicitly authorised in
+writing to test. Unauthorised access to a computer system is a criminal
+offence in most jurisdictions, including under the U.S. Computer Fraud and
+Abuse Act, the UK Computer Misuse Act, and equivalent legislation elsewhere.
+The mesh vulnerability is firmware-global: any unit you reach may not be
+yours, and "it was on my network" is not authorisation to access someone
+else's equipment.
+
+2. What the exploit does
+------------------------
+`poc/ota_rce.py` can obtain a root shell on a gate-open RD03v2. It modifies
+the device's Wi-Fi encryption configuration and triggers `cap_init` in the
+mesh daemon. It is not a read-only probe. The payload self-repairs the
+wireless configuration afterwards, but the device is left with modified state.
+
+`poc/re_wan_rce.py` can execute a command as root on a factory-reset RD03v2 from
+the WAN-side L2 segment. Its type-6 message completes `re_init`, which sets
+`INITTED=YES` and changes network and Wi-Fi configuration. The default payload only
+returns `id`, but the protocol action itself is state-changing. Factory-reset the
+test unit to restore the starting state.
+
+3. The mode gate can close
+--------------------------
+The demonstrated CAP command-injection sink is skipped when
+`NETMODE=whc_cap`, and when `NETMODE=lanapmode` with `CAP_MODE=ap`. A completed
+`cap_init` can set the first mode, while normal Xiaomi
+web setup can set it too; it is not evidence that a prior exploit ran. Treat
+the trigger as potentially one-shot and do not fire it unless the setup state
+has been checked. `poc/ota_rce.py` refuses to plant or fire unless it confirms
+the gate-open mode used in the hardware test. See `v2-root-rce.md`.
+
+The RE/WAN path does not use the CAP `NETMODE` gate. It is reachable only while
+the router is uninitialized, and a successful run closes itself by completing
+RE initialization.
+
+4. The hard-coded key is a firmware fact, not a secret of the author's
+----------------------------------------------------------------------
+The HMAC key documented here was extracted from vendor firmware images that
+Xiaomi distributes publicly. It is identical across 28 model codes. Documenting
+it is the point of the advisory: it cannot be a shared secret if every unit
+ships with it, and it is the reason a per-model patch does not resolve the
+vulnerability class.
+
+5. No warranty
+--------------
+THE SOFTWARE AND DOCUMENTATION ARE PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+
+Flashing firmware, modifying NAND, or installing an alternative operating
+system can render a device permanently unusable. There is no vendor support
+path for a device in this state. You accept that risk entirely. In no event
+shall the author be liable for any claim, damages or other liability arising
+from the use of this software or documentation.
+
+6. Flashing OpenWrt voids your warranty and is not reversible trivially
+----------------------------------------------------------------------
+Following the installer path in `xiaomi-openwrt-install` replaces the vendor
+firmware. That installer targets the Xiaomi AX3000T (`RD03v2`) only and does
+not apply to the other affected model codes. Reverting requires an initramfs
+pivot over the network or U-Boot TFTP recovery with a signed stock image.
+Vendor A/B fallback slots do not survive the install.
+
+7. Reporting
+------------
+This vulnerability is reported to Xiaomi and is with CERT/CC via VINCE
+(`VRF#26-09-SFWHW`). See `README.md` § Disclosure for the timeline and
+`remediation.md` for the fixes the vendor should make.

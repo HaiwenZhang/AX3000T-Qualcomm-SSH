@@ -1,0 +1,7 @@
+{
+  "source": "https://github.com/ADCDS/xiaomi-ax3000t-cabmeshd-disclosure",
+  "files": {
+    "init_router.py": "195b9e0a2f97bcf7319d73d39fd374078969b4f5642fc87654f1ba06aa4a3081",
+    "ota_rce.py": "544e0b8f55f5fb93ee884be416c05ca318ab4e0a707822d1122bc2db8467cb74"
+  }
+}
